@@ -262,7 +262,113 @@ async def coinpay(interaction: discord.Interaction, member: discord.Member, amou
         f"💸 {member.mention} に **{net} COIN** 送金しました。\n"
         f"手数料: **{tax} COIN (10%)**"
     )
+@bot.tree.command(name="coinadd", description="COINを付与（運営）")
+@app_commands.describe(
+    member="付与するユーザー",
+    amount="付与するCOIN数"
+)
+async def coinadd(
+    interaction: discord.Interaction,
+    member: discord.Member,
+    amount: app_commands.Range[int, 1, 1_000_000]
+):
+    if not isinstance(interaction.user, discord.Member) or not is_admin(interaction.user):
+        await interaction.response.send_message(
+            "運営専用です。",
+            ephemeral=True
+        )
+        return
 
+    await ensure_user(member.id)
+
+    conn = await db()
+
+    try:
+        await conn.execute(
+            "UPDATE users SET coin=coin+? WHERE user_id=?",
+            (amount, member.id)
+        )
+        await conn.commit()
+
+    finally:
+        await conn.close()
+
+    await audit(
+        "coinadd",
+        interaction.user.id,
+        member.id,
+        f"+{amount}"
+    )
+
+    await interaction.response.send_message(
+        f"🪙 {member.mention} に **{amount:,} COIN** 付与しました。",
+        ephemeral=True
+    )
+
+
+@bot.tree.command(name="coinremove", description="COINを回収（運営）")
+@app_commands.describe(
+    member="回収するユーザー",
+    amount="回収するCOIN数"
+)
+async def coinremove(
+    interaction: discord.Interaction,
+    member: discord.Member,
+    amount: app_commands.Range[int, 1, 1_000_000]
+):
+    if not isinstance(interaction.user, discord.Member) or not is_admin(interaction.user):
+        await interaction.response.send_message(
+            "運営専用です。",
+            ephemeral=True
+        )
+        return
+
+    await ensure_user(member.id)
+
+    conn = await db()
+
+    try:
+        await conn.execute("BEGIN IMMEDIATE")
+
+        row = await (
+            await conn.execute(
+                "SELECT coin FROM users WHERE user_id=?",
+                (member.id,)
+            )
+        ).fetchone()
+
+        current = int(row["coin"])
+
+        if current < amount:
+            await conn.rollback()
+
+            await interaction.response.send_message(
+                f"残高不足です。現在の残高は **{current:,} COIN** です。",
+                ephemeral=True
+            )
+            return
+
+        await conn.execute(
+            "UPDATE users SET coin=coin-? WHERE user_id=?",
+            (amount, member.id)
+        )
+
+        await conn.commit()
+
+    finally:
+        await conn.close()
+
+    await audit(
+        "coinremove",
+        interaction.user.id,
+        member.id,
+        f"-{amount}"
+    )
+
+    await interaction.response.send_message(
+        f"🪙 {member.mention} から **{amount:,} COIN** 回収しました。",
+        ephemeral=True
+    )
 
 @bot.tree.command(name="profile", description="桃源郷プロフィール")
 async def profile(interaction: discord.Interaction, member: Optional[discord.Member] = None):
