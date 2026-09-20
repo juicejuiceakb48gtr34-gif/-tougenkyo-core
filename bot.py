@@ -26,6 +26,38 @@ GIFT_TAX_RATE = 0.10
 JST = dt.timezone(dt.timedelta(hours=9))
 CHEER_DAILY_LIMIT = 100
 CHEER_COOLDOWN_SECONDS = 10
+SHOP_SEED_ITEMS = [
+    (
+        "name_ticket",
+        "称号変更券",
+        250,
+        "運営に申請して称号変更に使える券"
+    ),
+    (
+        "color_ticket",
+        "カラーロール券",
+        400,
+        "運営に申請してカラーロール交換に使える券"
+    ),
+    (
+        "event_ticket",
+        "イベント優先参加券",
+        600,
+        "対象イベントで優先枠の申請に使える券"
+    ),
+    (
+        "room_ticket",
+        "個室装飾券",
+        800,
+        "個室チャンネルの装飾申請に使える券"
+    ),
+    (
+        "lottery_ticket",
+        "桃源郷くじ券",
+        100,
+        "今後のくじ機能で使用する交換券"
+    ),
+]
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
@@ -75,6 +107,30 @@ CREATE TABLE IF NOT EXISTS cheer_transfers (
     amount INTEGER NOT NULL,
     created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS shop_items (
+    item_key TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    price INTEGER NOT NULL,
+    description TEXT NOT NULL,
+    active INTEGER NOT NULL DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS inventory (
+    user_id INTEGER NOT NULL,
+    item_key TEXT NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (user_id, item_key)
+);
+
+CREATE TABLE IF NOT EXISTS purchases (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    item_key TEXT NOT NULL,
+    quantity INTEGER NOT NULL,
+    unit_price INTEGER NOT NULL,
+    total_price INTEGER NOT NULL,
+    created_at TEXT NOT NULL
+);
         CREATE TABLE IF NOT EXISTS applications (
             user_id INTEGER PRIMARY KEY,
             status TEXT NOT NULL,
@@ -106,6 +162,19 @@ CREATE TABLE IF NOT EXISTS cheer_transfers (
             created_at TEXT NOT NULL
         );
         """)
+               await conn.executemany(
+            """
+            INSERT OR IGNORE INTO shop_items(
+                item_key,
+                name,
+                price,
+                description,
+                active
+            )
+            VALUES(?,?,?,?,1)
+            """,
+            SHOP_SEED_ITEMS
+        ) 
         await conn.commit()
     finally:
         await conn.close()
@@ -369,7 +438,302 @@ async def coinremove(
         f"🪙 {member.mention} から **{amount:,} COIN** 回収しました。",
         ephemeral=True
     )
+@bot.tree.command(name="shop", description="桃源郷SHOPの商品一覧")
+async def shop(interaction: discord.Interaction):
+    conn = await db()
 
+    try:
+        rows = await (
+            await conn.execute(
+                """
+                SELECT item_key, name, price, description
+                FROM shop_items
+                WHERE active=1
+                ORDER BY price ASC, item_key ASC
+                """
+            )
+        ).fetchall()
+
+    finally:
+        await conn.close()
+
+    if not rows:
+        await interaction.response.send_message(
+            "現在販売中の商品はありません。",
+            ephemeral=True
+        )
+        return
+
+    lines = []
+
+    for row in rows:
+        lines.append(
+            f"**{row['name']}** — **{int(row['price']):,} COIN**\n"
+            f"商品ID: `{row['item_key']}`\n"
+            f"{row['description']}"
+        )
+
+    embed = discord.Embed(
+        title="🛍️ 桃源郷 SHOP",
+        description="\n\n".join(lines),
+        color=discord.Color.green()
+    )
+
+    embed.set_footer(
+        text="/buy で商品IDと数量を指定して購入"
+    )
+
+    await interaction.response.send_message(
+        embed=embed
+    )
+    @bot.tree.command(name="buy", description="SHOPの商品をCOINで購入")
+@app_commands.describe(
+    item="SHOPに表示される商品ID",
+    quantity="購入数"
+)
+async def buy(
+    interaction: discord.Interaction,
+    item: str,
+    quantity: app_commands.Range[int, 1, 99] = 1
+):
+    uid = interaction.user.id
+    await ensure_user(uid)
+
+    item_key = item.strip().lower()
+
+    conn = await db()
+
+    try:
+        await conn.execute("BEGIN IMMEDIATE")
+
+        product = await (
+            await conn.execute(
+                """
+                SELECT item_key, name, price, description
+                FROM shop_items
+                WHERE item_key=? AND active=1
+                """,
+                (item_key,)
+            )
+        ).fetchone()
+
+        if not product:
+            await conn.rollback()
+
+            await interaction.response.send_message(
+                "その商品IDは存在しないか、現在販売停止中です。/shop で確認してください。",
+                ephemeral=True
+            )
+            return
+
+        user_row = await (
+            await conn.execute(
+                "SELECT coin FROM users WHERE user_id=?",
+                (uid,)
+            )
+        ).fetchone()
+
+        current_coin = int(user_row["coin"])
+        unit_price = int(product["price"])
+        total_price = unit_price * quantity
+
+        if current_coin < total_price:
+            await conn.rollback()
+
+            await interaction.response.send_message(
+                f"COINが足りません。必要: **{total_price:,} COIN** / "
+                f"残高: **{current_coin:,} COIN**",
+                ephemeral=True
+            )
+            return
+
+        await conn.execute(
+            "UPDATE users SET coin=coin-? WHERE user_id=?",
+            (total_price, uid)
+        )
+
+        await conn.execute(
+            """
+            INSERT INTO inventory(user_id, item_key, quantity)
+            VALUES(?,?,?)
+            ON CONFLICT(user_id,item_key)
+            DO UPDATE SET quantity=quantity+excluded.quantity
+            """,
+            (uid, item_key, quantity)
+        )
+
+        await conn.execute(
+            """
+            INSERT INTO purchases(
+                user_id,
+                item_key,
+                quantity,
+                unit_price,
+                total_price,
+                created_at
+            )
+            VALUES(?,?,?,?,?,?)
+            """,
+            (
+                uid,
+                item_key,
+                quantity,
+                unit_price,
+                total_price,
+                utcnow().isoformat()
+            )
+        )
+
+        await conn.commit()
+
+    finally:
+        await conn.close()
+
+    await audit(
+        "buy",
+        uid,
+        uid,
+        f"item={item_key} quantity={quantity} total={total_price}"
+    )
+
+    await interaction.response.send_message(
+        f"🛍️ **{product['name']}** × **{quantity}** を購入しました。\n"
+        f"支払額: **{total_price:,} COIN**"
+    )
+    @bot.tree.command(name="inventory", description="所持アイテムを確認")
+async def inventory(
+    interaction: discord.Interaction,
+    member: Optional[discord.Member] = None
+):
+    target = member or interaction.user
+    await ensure_user(target.id)
+
+    conn = await db()
+
+    try:
+        rows = await (
+            await conn.execute(
+                """
+                SELECT i.item_key, i.quantity, s.name
+                FROM inventory i
+                LEFT JOIN shop_items s
+                    ON s.item_key=i.item_key
+                WHERE i.user_id=? AND i.quantity>0
+                ORDER BY i.quantity DESC, i.item_key ASC
+                """,
+                (target.id,)
+            )
+        ).fetchall()
+
+    finally:
+        await conn.close()
+
+    if not rows:
+        await interaction.response.send_message(
+            f"🎒 {target.mention} の所持アイテムはありません。",
+            ephemeral=True
+        )
+        return
+
+    lines = []
+
+    for row in rows:
+        name = row["name"] or row["item_key"]
+
+        lines.append(
+            f"• **{name}** × {int(row['quantity'])}\n"
+            f"  ID: `{row['item_key']}`"
+        )
+
+    embed = discord.Embed(
+        title=f"🎒 {target.display_name} のインベントリ",
+        description="\n".join(lines),
+        color=discord.Color.teal()
+    )
+
+    await interaction.response.send_message(
+        embed=embed
+    )
+
+
+@bot.tree.command(name="purchases", description="最近の購入履歴を確認")
+async def purchases(interaction: discord.Interaction):
+    uid = interaction.user.id
+
+    await ensure_user(uid)
+
+    conn = await db()
+
+    try:
+        rows = await (
+            await conn.execute(
+                """
+                SELECT
+                    p.item_key,
+                    p.quantity,
+                    p.total_price,
+                    p.created_at,
+                    s.name
+                FROM purchases p
+                LEFT JOIN shop_items s
+                    ON s.item_key=p.item_key
+                WHERE p.user_id=?
+                ORDER BY p.id DESC
+                LIMIT 10
+                """,
+                (uid,)
+            )
+        ).fetchall()
+
+    finally:
+        await conn.close()
+
+    if not rows:
+        await interaction.response.send_message(
+            "購入履歴はまだありません。",
+            ephemeral=True
+        )
+        return
+
+    lines = []
+
+    for row in rows:
+        name = row["name"] or row["item_key"]
+
+        try:
+            purchased_at = (
+                dt.datetime
+                .fromisoformat(row["created_at"])
+                .astimezone(JST)
+            )
+
+            time_text = purchased_at.strftime(
+                "%m/%d %H:%M"
+            )
+
+        except (TypeError, ValueError):
+            time_text = "-"
+
+        lines.append(
+            f"• **{name}** × {int(row['quantity'])}\n"
+            f"  **{int(row['total_price']):,} COIN**"
+            f"  ({time_text})"
+        )
+
+    embed = discord.Embed(
+        title="🧾 最近の購入履歴",
+        description="\n".join(lines),
+        color=discord.Color.blue()
+    )
+
+    embed.set_footer(
+        text="最新10件"
+    )
+
+    await interaction.response.send_message(
+        embed=embed,
+        ephemeral=True
+    )
 @bot.tree.command(name="profile", description="桃源郷プロフィール")
 async def profile(interaction: discord.Interaction, member: Optional[discord.Member] = None):
     target = member or interaction.user
