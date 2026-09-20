@@ -23,7 +23,9 @@ LOG_CHANNEL = os.getenv("LOG_CHANNEL", "TG｜運営ログ")
 DAILY_REWARD = 20
 JOIN_REWARD = 100
 GIFT_TAX_RATE = 0.10
-
+JST = dt.timezone(dt.timedelta(hours=9))
+CHEER_DAILY_LIMIT = 100
+CHEER_COOLDOWN_SECONDS = 10
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
@@ -66,7 +68,13 @@ async def init_db():
             net INTEGER NOT NULL,
             created_at TEXT NOT NULL
         );
-
+CREATE TABLE IF NOT EXISTS cheer_transfers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sender_id INTEGER NOT NULL,
+    receiver_id INTEGER NOT NULL,
+    amount INTEGER NOT NULL,
+    created_at TEXT NOT NULL
+);
         CREATE TABLE IF NOT EXISTS applications (
             user_id INTEGER PRIMARY KEY,
             status TEXT NOT NULL,
@@ -123,6 +131,7 @@ async def audit(action: str, actor_id: Optional[int] = None, target_id: Optional
             (actor_id, action, target_id, detail[:1000], utcnow().isoformat())
         )
         await conn.commit()
+    
     finally:
         await conn.close()
 
@@ -197,7 +206,7 @@ async def daily(interaction: discord.Interaction):
     conn = await db()
     try:
         row = await (await conn.execute("SELECT last_daily FROM users WHERE user_id=?", (uid,))).fetchone()
-        today = utcnow().date().isoformat()
+        today = dt.datetime.now(JST).date().isoformat()
         if row["last_daily"] == today:
             await interaction.response.send_message("今日はもう受け取っています。", ephemeral=True)
             return
@@ -209,9 +218,9 @@ async def daily(interaction: discord.Interaction):
     await interaction.response.send_message(f"🎁 **{DAILY_REWARD} COIN** を受け取りました。")
 
 
-@bot.tree.command(name="pay", description="他の住人へCOINを送る（手数料10%）")
+@bot.tree.command(name="coinpay", description="他の住人へCOINを送る（手数料10%）")
 @app_commands.describe(member="送金相手", amount="送るCOIN数")
-async def pay(interaction: discord.Interaction, member: discord.Member, amount: app_commands.Range[int, 1, 1_000_000]):
+async def coinpay(interaction: discord.Interaction, member: discord.Member, amount: app_commands.Range[int, 1, 1_000_000]):
     if member.bot or member.id == interaction.user.id:
         await interaction.response.send_message("その相手には送金できません。", ephemeral=True)
         return
@@ -248,7 +257,7 @@ async def pay(interaction: discord.Interaction, member: discord.Member, amount: 
     finally:
         await conn.close()
 
-    await audit("pay", sender, receiver, f"gross={amount} tax={tax} net={net}")
+    await audit("coinpay", sender, receiver, f"gross={amount} tax={tax} net={net}")
     await interaction.response.send_message(
         f"💸 {member.mention} に **{net} COIN** 送金しました。\n"
         f"手数料: **{tax} COIN (10%)**"
@@ -365,19 +374,139 @@ async def reject(interaction: discord.Interaction, member: discord.Member, reaso
 
 
 @bot.tree.command(name="cheer", description="CHEERを付与")
-async def cheer(interaction: discord.Interaction, member: discord.Member, amount: app_commands.Range[int, 1, 100] = 1):
+async def cheer(
+    interaction: discord.Interaction,
+    member: discord.Member,
+    amount: app_commands.Range[int, 1, 100] = 1
+):
     if member.bot or member.id == interaction.user.id:
-        await interaction.response.send_message("その相手にはCHEERできません。", ephemeral=True)
+        await interaction.response.send_message(
+            "その相手にはCHEERできません。",
+            ephemeral=True
+        )
         return
+
+    sender_id = interaction.user.id
+    now_utc = utcnow()
+    now_jst = dt.datetime.now(JST)
+
+    day_start_jst = dt.datetime.combine(
+        now_jst.date(),
+        dt.time.min,
+        tzinfo=JST
+    )
+
+    day_start_utc = day_start_jst.astimezone(
+        dt.timezone.utc
+    ).isoformat()
+
     await ensure_user(member.id)
     conn = await db()
+
     try:
-        await conn.execute("UPDATE users SET cheer=cheer+? WHERE user_id=?", (amount, member.id))
+        used_row = await (
+            await conn.execute(
+                """
+                SELECT COALESCE(SUM(amount), 0) AS total
+                FROM cheer_transfers
+                WHERE sender_id=?
+                AND created_at>=?
+                """,
+                (sender_id, day_start_utc)
+            )
+        ).fetchone()
+
+        used_today = int(used_row["total"])
+
+        if used_today + amount > CHEER_DAILY_LIMIT:
+            remaining = max(
+                0,
+                CHEER_DAILY_LIMIT - used_today
+            )
+
+            await interaction.response.send_message(
+                f"今日送れるCHEERは残り **{remaining}** です。"
+                f"1日の上限は **{CHEER_DAILY_LIMIT} CHEER**。",
+                ephemeral=True
+            )
+            return
+
+        last_row = await (
+            await conn.execute(
+                """
+                SELECT created_at
+                FROM cheer_transfers
+                WHERE sender_id=?
+                ORDER BY id DESC
+                LIMIT 1
+                """,
+                (sender_id,)
+            )
+        ).fetchone()
+
+        if last_row:
+            last_time = dt.datetime.fromisoformat(
+                last_row["created_at"]
+            )
+
+            elapsed = (
+                now_utc - last_time
+            ).total_seconds()
+
+            if elapsed < CHEER_COOLDOWN_SECONDS:
+                wait_seconds = max(
+                    1,
+                    math.ceil(
+                        CHEER_COOLDOWN_SECONDS - elapsed
+                    )
+                )
+
+                await interaction.response.send_message(
+                    f"CHEERの連続送信を防止しています。"
+                    f" **{wait_seconds}秒** 待ってください。",
+                    ephemeral=True
+                )
+                return
+
+        await conn.execute(
+            "UPDATE users SET cheer=cheer+? WHERE user_id=?",
+            (amount, member.id)
+        )
+
+        await conn.execute(
+            """
+            INSERT INTO cheer_transfers(
+                sender_id,
+                receiver_id,
+                amount,
+                created_at
+            )
+            VALUES(?,?,?,?)
+            """,
+            (
+                sender_id,
+                member.id,
+                amount,
+                now_utc.isoformat()
+            )
+        )
+
         await conn.commit()
+
     finally:
         await conn.close()
-    await audit("cheer", interaction.user.id, member.id, f"+{amount}")
-    await interaction.response.send_message(f"📣 {member.mention} に **{amount} CHEER**")
+
+    await audit(
+        "cheer",
+        sender_id,
+        member.id,
+        f"+{amount}"
+    )
+
+    await interaction.response.send_message(
+        f"📣 {member.mention} に **{amount} CHEER**\n"
+        f"本日の使用: **{used_today + amount}/{CHEER_DAILY_LIMIT}**"
+    )
 
 
 @bot.tree.command(name="jobxp", description="JOB XPを付与（運営）")
