@@ -607,7 +607,102 @@ async def stats(interaction: discord.Interaction):
     embed.add_field(name="審査待ち", value=pending)
     embed.add_field(name="未処理Ticket", value=tickets)
     await interaction.response.send_message(embed=embed, ephemeral=True)
+@bot.tree.command(name="ranking", description="桃源郷ランキングを表示")
+@app_commands.choices(
+    category=[
+        app_commands.Choice(name="COIN", value="coin"),
+        app_commands.Choice(name="CHEER", value="cheer"),
+        app_commands.Choice(name="JOB XP", value="job_xp"),
+    ]
+)
+async def ranking(
+    interaction: discord.Interaction,
+    category: app_commands.Choice[str]
+):
+    metric = category.value
 
+    labels = {
+        "coin": "COIN",
+        "cheer": "CHEER",
+        "job_xp": "JOB XP",
+    }
+
+    icons = {
+        "coin": "🪙",
+        "cheer": "📣",
+        "job_xp": "🧰",
+    }
+
+    conn = await db()
+
+    try:
+        rows = await (
+            await conn.execute(
+                f"""
+                SELECT user_id, {metric} AS value
+                FROM users
+                WHERE {metric} > 0
+                ORDER BY {metric} DESC, user_id ASC
+                LIMIT 10
+                """
+            )
+        ).fetchall()
+
+    finally:
+        await conn.close()
+
+    if not rows:
+        await interaction.response.send_message(
+            f"{labels[metric]} のランキングデータはまだありません。",
+            ephemeral=True
+        )
+        return
+
+    guild = interaction.guild
+
+    medals = [
+        "🥇",
+        "🥈",
+        "🥉",
+        "4.",
+        "5.",
+        "6.",
+        "7.",
+        "8.",
+        "9.",
+        "10."
+    ]
+
+    lines = []
+
+    for index, row in enumerate(rows):
+        user_id = int(row["user_id"])
+        value = int(row["value"])
+
+        member = guild.get_member(user_id) if guild else None
+
+        if member:
+            user_display = member.mention
+        else:
+            user_display = f"<@{user_id}>"
+
+        lines.append(
+            f"{medals[index]} {user_display} — **{value:,} {labels[metric]}**"
+        )
+
+    embed = discord.Embed(
+        title=f"{icons[metric]} 桃源郷 {labels[metric]}ランキング",
+        description="\n".join(lines),
+        color=discord.Color.gold()
+    )
+
+    embed.set_footer(
+        text="TOP 10"
+    )
+
+    await interaction.response.send_message(
+        embed=embed
+    )
 
 @bot.event
 async def on_voice_state_update(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
