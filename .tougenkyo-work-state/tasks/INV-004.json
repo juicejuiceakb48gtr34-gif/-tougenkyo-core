@@ -1,0 +1,23 @@
+{
+  "result_version": "2.4.0",
+  "task_id": "INV-004",
+  "task_name": "GitHub latest commit",
+  "status": "COMPLETED",
+  "action": "Read latest commit metadata only.",
+  "source_chunks": [],
+  "expected_outputs": [
+    "state/inv_004.json"
+  ],
+  "artifacts": [
+    ".tougenkyo-work-state/artifacts/state/inv_004.json"
+  ],
+  "completed_at": "2026-10-01T00:27:05.080Z",
+  "checkpoint_id": "INV-004-20261001T002705080Z",
+  "task_external_mutation": false,
+  "implementation_git_commits": 0,
+  "railway_deploys": 0,
+  "next_task_id": "INV-005",
+  "remaining_steps": [],
+  "effective_stop_after_task": false,
+  "checkpoint_required": true
+}
