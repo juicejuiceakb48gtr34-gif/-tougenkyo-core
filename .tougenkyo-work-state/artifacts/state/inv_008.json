@@ -1,0 +1,32 @@
+{
+  "artifact_version": "2.4.0",
+  "task_id": "INV-008",
+  "name": "Railway latest deployment",
+  "observed_at": "2026-10-01T00:30:46.521Z",
+  "projectId": "d32b5bdd-2287-4a30-9f9f-75ec7a529259",
+  "serviceId": "fa38abee-9815-4b0c-a351-253d1c7319d6",
+  "environmentId": "6b63674e-0de8-4d36-ac9d-9e0ba9d65ab9",
+  "latest_deployment": {
+    "id": "e79cec59-1319-4197-af55-6da3625ba882",
+    "status": "SUCCESS",
+    "createdAt": "2026-09-20T05:23:12.832Z",
+    "updatedAt": "2026-09-20T05:25:24.801Z",
+    "serviceId": "fa38abee-9815-4b0c-a351-253d1c7319d6",
+    "environmentId": "6b63674e-0de8-4d36-ac9d-9e0ba9d65ab9",
+    "url": null,
+    "snapshotId": "283f5433-364a-4a65-a9f5-bf264a3a358f",
+    "canRollback": true,
+    "canRedeploy": true,
+    "regions": [
+      "sfo"
+    ],
+    "meta": {
+      "reason": "deploy",
+      "commitMessage": "Core v1.8-B shop inventory purchase system",
+      "commitHash": "4dae04463fa3dbf8ae60a76e62ed5637db3620fe",
+      "branch": "main"
+    }
+  },
+  "status": "PASS",
+  "external_task_mutation": false
+}
