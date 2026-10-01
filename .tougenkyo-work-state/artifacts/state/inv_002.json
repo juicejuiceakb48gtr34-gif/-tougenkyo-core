@@ -1,0 +1,81 @@
+{
+  "artifact_version": "2.4.0",
+  "task_id": "INV-002",
+  "name": "GitHub repository",
+  "action": "Confirm owner/repo/branch only. Read-only.",
+  "observed_at": "2026-10-01T00:13:11.979Z",
+  "status": "PASS",
+  "repository": {
+    "id": "1377480480",
+    "owner": "juicejuiceakb48gtr34-gif",
+    "name": "-tougenkyo-core",
+    "full_name": "juicejuiceakb48gtr34-gif/-tougenkyo-core",
+    "url": "https://github.com/juicejuiceakb48gtr34-gif/-tougenkyo-core",
+    "default_branch": "main",
+    "visibility": "public",
+    "archived": false
+  },
+  "branches": {
+    "implementation": {
+      "name": "main",
+      "head_sha": "4dae04463fa3dbf8ae60a76e62ed5637db3620fe"
+    },
+    "checkpoint": {
+      "name": "work-state",
+      "head_sha_before_task": "b8d3363d6de8f7b950a4c5b33774d3b35918030c"
+    }
+  },
+  "remote_state": {
+    "path": ".tougenkyo-work-state/WORK_STATE_LATEST.json",
+    "branch": "work-state",
+    "blob_sha": "4b4251a4705bae8d09838ca3fceeb1f7683c3aec",
+    "current_task_id": "INV-002",
+    "completed_task_ids": [
+      "INV-001"
+    ]
+  },
+  "queue_sha256": "bdc1ea6dae6ef3ff71994a287ebbe9eca1102c041068668a660727fb00399e77",
+  "source_chunks": [],
+  "validation": [
+    {
+      "check": "repository_owner_matches",
+      "passed": true
+    },
+    {
+      "check": "repository_name_matches",
+      "passed": true
+    },
+    {
+      "check": "repository_full_name_matches",
+      "passed": true
+    },
+    {
+      "check": "default_branch_main_exists",
+      "passed": true
+    },
+    {
+      "check": "durable_branch_work_state_exists",
+      "passed": true
+    },
+    {
+      "check": "resumed_from_latest_remote_state",
+      "passed": true
+    },
+    {
+      "check": "microtask_queue_sha256_verified",
+      "passed": true
+    }
+  ],
+  "task_scope": {
+    "external_mutations": 0,
+    "implementation_git_commits": 0,
+    "railway_deploys": 0,
+    "discord_mutations": 0
+  },
+  "checkpoint_policy": {
+    "version": "2.4.0",
+    "checkpoint_writes_required": true,
+    "publication_backend": "authenticated_github_web_ui",
+    "task_commit_limit_applies_to_implementation": true
+  }
+}
