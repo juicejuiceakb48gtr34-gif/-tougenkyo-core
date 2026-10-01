@@ -1,0 +1,44 @@
+{
+  "artifact_version": "2.4.0",
+  "task_id": "INV-005",
+  "name": "GitHub root tree",
+  "observed_at": "2026-10-01T00:28:05.034Z",
+  "repository": "juicejuiceakb48gtr34-gif/-tougenkyo-core",
+  "branch": "main",
+  "head_sha": "4dae04463fa3dbf8ae60a76e62ed5637db3620fe",
+  "root_tree_sha": "451c7416049054813aecb249a640b0aba71dc6d8",
+  "recursive": false,
+  "truncated": false,
+  "entries": [
+    {
+      "path": "README.md",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "eb754f4c99b1c6a3ac72ef65be4bfed7c2596511",
+      "size": 1240
+    },
+    {
+      "path": "bot.py",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "4aa1663ca9b7f051a55806c3bd729884c74584ad",
+      "size": 39372
+    },
+    {
+      "path": "render.yaml",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "7755a2d0a733fb772e7ee0906f0c0b218552c693",
+      "size": 276
+    },
+    {
+      "path": "requirements.txt",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "0492448dd62815e70ba71c6f0aaf0cbfd5302a07",
+      "size": 49
+    }
+  ],
+  "status": "PASS",
+  "external_task_mutation": false
+}
