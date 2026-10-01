@@ -1,0 +1,105 @@
+{
+  "state_version": "2.4.0",
+  "execution_mode": "MICROSTATE_DURABLE_REMOTE_RESUME",
+  "no_summary": true,
+  "preserve_source_files_verbatim": true,
+  "exact_chunk_reassembly_verified": true,
+  "chunk_target_bytes": 3000,
+  "chunk_hard_max_bytes": 4500,
+  "source_guild_id": "1549679128171778060",
+  "source_guild_policy": "READ_ONLY_REFERENCE",
+  "target_guild_name_during_build": "桃源郷｜BUILD",
+  "target_guild_final_name": "桃源郷",
+  "current_task_id": "INV-002",
+  "completed_task_ids": [
+    "INV-001"
+  ],
+  "failed_task_ids": [],
+  "blocked_task_ids": [],
+  "task_results": {
+    "INV-001": {
+      "status": "COMPLETED",
+      "result_path": ".tougenkyo-work-state/tasks/INV-001.json",
+      "artifacts": [
+        ".tougenkyo-work-state/artifacts/state/inv_001.json"
+      ],
+      "completed_at": "2026-09-30T23:16:56.726Z",
+      "checkpoint_id": "INV-001-20260930T231656726Z"
+    }
+  },
+  "git_commits": [
+    "847370fdd3d17ed629a407eb01de5463db2a6a13",
+    "f79b523d23e25434ac85794b6290f0b6a2b635c9"
+  ],
+  "railway_deployments": [],
+  "discord_objects_created": [],
+  "database_migrations": [],
+  "test_results": [],
+  "human_gates": [],
+  "coverage": {
+    "total": null,
+    "mapped": null,
+    "superseded_tech": null,
+    "rejected": null,
+    "needs_review": null,
+    "unmapped": null
+  },
+  "completion": {
+    "unmapped_zero": false,
+    "needs_review_zero": false,
+    "critical_tests_pass": false,
+    "critical_permission_conflicts_zero": false,
+    "exposed_secrets_zero": false,
+    "db_integrity_errors_zero": false,
+    "target_guild_created": false,
+    "blueprint_applied": false,
+    "deployment_healthy": false,
+    "backup_verified": false,
+    "final_cutover_candidate": false
+  },
+  "durable_state": {
+    "enabled": true,
+    "primary_backend": "github",
+    "repository": "juicejuiceakb48gtr34-gif/-tougenkyo-core",
+    "branch": "work-state",
+    "state_root": ".tougenkyo-work-state",
+    "latest_state_path": ".tougenkyo-work-state/WORK_STATE_LATEST.json",
+    "task_results_dir": ".tougenkyo-work-state/tasks",
+    "artifacts_dir": ".tougenkyo-work-state/artifacts",
+    "checkpoint_log": ".tougenkyo-work-state/CHECKPOINT_LOG.jsonl",
+    "fallback_backend": "current_work_project_files",
+    "bundled_state_is_bootstrap_only": true
+  },
+  "resume_policy": {
+    "always_fetch_remote_state_before_bundled_state": true,
+    "never_overwrite_newer_remote_with_bundled_initial_state": true,
+    "same_zip_can_resume": true,
+    "requires_successful_remote_checkpoint_after_each_task": true
+  },
+  "updated_at": "2026-10-01T00:06:07.137Z",
+  "last_completed_task_id": "INV-001",
+  "checkpoint_status": "COMPLETE",
+  "remaining_steps": [],
+  "last_checkpoint": {
+    "checkpoint_id": "INV-001-20260930T231656726Z",
+    "task_id": "INV-001",
+    "created_at": "2026-09-30T23:16:56.726Z",
+    "branch": "work-state",
+    "parent_commit_sha": "f79b523d23e25434ac85794b6290f0b6a2b635c9",
+    "commit_message": "checkpoint(work): complete INV-001",
+    "state_path": ".tougenkyo-work-state/WORK_STATE_LATEST.json",
+    "result_path": ".tougenkyo-work-state/tasks/INV-001.json",
+    "artifact_paths": [
+      ".tougenkyo-work-state/artifacts/state/inv_001.json"
+    ],
+    "verification_rule": "Remote files must be read back and matched before reporting task completion or executing INV-002.",
+    "publication_backend": "authenticated_github_web_ui",
+    "bootstrap_base_commit_sha": "4dae04463fa3dbf8ae60a76e62ed5637db3620fe",
+    "staged_files_verified_at": "2026-10-01T00:06:07.137Z",
+    "staged_file_blobs": {
+      "artifact": "15be6c7332b1900edff516645aee26610b681150",
+      "task_result": "577a7011d38564d5fa5bc1ca1291ea7a4063a17b"
+    },
+    "commit_sha_resolution": "Read the containing GitHub commit after publishing and verifying this checkpoint."
+  }
+}
