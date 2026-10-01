@@ -1,0 +1,91 @@
+{
+  "artifact_version": "2.4.0",
+  "task_id": "INV-001",
+  "name": "GitHub access",
+  "action": "Confirm GitHub connector/access only. Read-only.",
+  "observed_at": "2026-09-30T23:16:56.726Z",
+  "status": "PASS",
+  "repository": "juicejuiceakb48gtr34-gif/-tougenkyo-core",
+  "authenticated_login": "juicejuiceakb48gtr34-gif",
+  "access": {
+    "connector": "GitHub",
+    "read_confirmed": true,
+    "reported_permissions": {
+      "admin": true,
+      "maintain": true,
+      "pull": true,
+      "push": true,
+      "triage": true
+    },
+    "checkpoint_write_to_be_verified_by_publication": true,
+    "checkpoint_write_backend": "authenticated_github_web_ui",
+    "authenticated_browser_confirmed_at": "2026-10-01T00:02:08.506Z",
+    "integration_write_failure": {
+      "error": "GitHub API error 403: {\"message\":\"Resource not accessible by integration\",\"documentation_url\":\"https://docs.github.com/rest/git/trees#create-a-tree\",\"status\":\"403\"}",
+      "error_code": "FORBIDDEN",
+      "error_data": {
+        "message": "Resource not accessible by integration",
+        "documentation_url": "https://docs.github.com/rest/git/trees#create-a-tree",
+        "status": "403"
+      }
+    }
+  },
+  "remote_state_first": {
+    "branch": "work-state",
+    "path": ".tougenkyo-work-state/WORK_STATE_LATEST.json",
+    "fetch_error_code": "NOT_FOUND",
+    "fetch_error_message": "GitHub API error 404: {\"message\":\"No commit found for the ref work-state\",\"documentation_url\":\"https://docs.github.com/v3/repos/contents/\",\"status\":\"404\"}",
+    "matching_branch_count": 0,
+    "decision": "INITIALIZE_FROM_V2_4_0_BOOTSTRAP",
+    "resume_recheck": {
+      "error": "GitHub API error 404: {\"message\":\"No commit found for the ref work-state\",\"documentation_url\":\"https://docs.github.com/v3/repos/contents/\",\"status\":\"404\"}",
+      "error_code": "NOT_FOUND",
+      "error_data": {
+        "message": "No commit found for the ref work-state",
+        "documentation_url": "https://docs.github.com/v3/repos/contents/",
+        "status": "404"
+      }
+    }
+  },
+  "bootstrap_control_files_sha256": {
+    "START_HERE_WORK_DURABLE_v2.4.0.md": "e669006294a65867c2c9fc47e84a8bd8fc493ea160c5dba85f422396282058e4",
+    "REMOTE_RESUME_CONFIG_v2.4.0.json": "529ebb3912fd88840ebf61380117f1893ecfefdd86a9454090acc4b011bf8bfe",
+    "WORK_STATE_BOOTSTRAP_v2.4.0.json": "509760e91d9b3b2db8309b495ed0afd208980f004923e796ac56045c27626820",
+    "MICROTASK_QUEUE_v2.3.0.json": "bdc1ea6dae6ef3ff71994a287ebbe9eca1102c041068668a660727fb00399e77",
+    "WORK_HANDOFF_MESSAGE_v2.4.0.txt": "e22d327ac3554e243d787728130fcb5d9d10b42c47e7d7afe6a40a0743335f98"
+  },
+  "source_chunks": [],
+  "task_scope": {
+    "external_mutations": 0,
+    "implementation_git_commits": 0,
+    "railway_deploys": 0,
+    "discord_mutations": 0
+  },
+  "checkpoint_policy": {
+    "version": "2.4.0",
+    "checkpoint_writes_required": true,
+    "task_commit_limit_applies_to_implementation": true
+  },
+  "validation": [
+    {
+      "check": "authenticated_account_is_repository_owner",
+      "passed": true
+    },
+    {
+      "check": "repository_read_access",
+      "passed": true
+    },
+    {
+      "check": "repository_reports_push_permission",
+      "passed": true
+    },
+    {
+      "check": "no_existing_remote_state_overwritten",
+      "passed": true
+    },
+    {
+      "check": "v2_4_0_control_file_hashes",
+      "passed": true
+    }
+  ]
+}
