@@ -10,12 +10,13 @@
   "source_guild_policy": "READ_ONLY_REFERENCE",
   "target_guild_name_during_build": "桃源郷｜BUILD",
   "target_guild_final_name": "桃源郷",
-  "current_task_id": "INV-005",
+  "current_task_id": "INV-006",
   "completed_task_ids": [
     "INV-001",
     "INV-002",
     "INV-003",
-    "INV-004"
+    "INV-004",
+    "INV-005"
   ],
   "failed_task_ids": [],
   "blocked_task_ids": [],
@@ -55,6 +56,15 @@
       ],
       "completed_at": "2026-10-01T00:27:05.080Z",
       "checkpoint_id": "INV-004-20261001T002705080Z"
+    },
+    "INV-005": {
+      "status": "COMPLETED",
+      "result_path": ".tougenkyo-work-state/tasks/INV-005.json",
+      "artifacts": [
+        ".tougenkyo-work-state/artifacts/state/inv_005.json"
+      ],
+      "completed_at": "2026-10-01T00:28:05.452Z",
+      "checkpoint_id": "INV-005-20261001T002805452Z"
     }
   },
   "git_commits": [
@@ -68,7 +78,10 @@
     "59fe36bce4389830fab45f1fa00a24e6fc84db31",
     "0fd194e4c5941b6893525f0973cfeee0abb5d96b",
     "e75eeba38a160e0fd17a8188e63b405868d7da10",
-    "7581436eb85dd55710fc795815ffbf1f8bfaa4f4"
+    "7581436eb85dd55710fc795815ffbf1f8bfaa4f4",
+    "b5ac157c9a6e8ca8f9372f5c18d43d08fac74469",
+    "717debe24476701308af9ee6679b61c3056e7496",
+    "b2fd844f8141d4cdab02c193a2f16636023a7f55"
   ],
   "railway_deployments": [],
   "discord_objects_created": [],
@@ -115,30 +128,30 @@
     "same_zip_can_resume": true,
     "requires_successful_remote_checkpoint_after_each_task": true
   },
-  "updated_at": "2026-10-01T00:27:45.239Z",
-  "last_completed_task_id": "INV-004",
+  "updated_at": "2026-10-01T00:28:33.024Z",
+  "last_completed_task_id": "INV-005",
   "checkpoint_status": "COMPLETE",
   "remaining_steps": [],
   "last_checkpoint": {
-    "checkpoint_id": "INV-004-20261001T002705080Z",
-    "task_id": "INV-004",
-    "created_at": "2026-10-01T00:27:05.080Z",
+    "checkpoint_id": "INV-005-20261001T002805452Z",
+    "task_id": "INV-005",
+    "created_at": "2026-10-01T00:28:05.452Z",
     "branch": "work-state",
-    "parent_commit_sha": "7581436eb85dd55710fc795815ffbf1f8bfaa4f4",
-    "previous_checkpoint_commit_sha": "0fd194e4c5941b6893525f0973cfeee0abb5d96b",
-    "commit_message": "checkpoint(work): complete INV-004",
+    "parent_commit_sha": "b2fd844f8141d4cdab02c193a2f16636023a7f55",
+    "previous_checkpoint_commit_sha": "b5ac157c9a6e8ca8f9372f5c18d43d08fac74469",
+    "commit_message": "checkpoint(work): complete INV-005",
     "state_path": ".tougenkyo-work-state/WORK_STATE_LATEST.json",
-    "result_path": ".tougenkyo-work-state/tasks/INV-004.json",
+    "result_path": ".tougenkyo-work-state/tasks/INV-005.json",
     "artifact_paths": [
-      ".tougenkyo-work-state/artifacts/state/inv_004.json"
+      ".tougenkyo-work-state/artifacts/state/inv_005.json"
     ],
     "publication_backend": "authenticated_github_web_ui",
     "verification_rule": "Read back and match the checkpoint before executing the next task.",
     "commit_sha_resolution": "Read the containing commit after publication.",
-    "staged_files_verified_at": "2026-10-01T00:27:45.239Z",
+    "staged_files_verified_at": "2026-10-01T00:28:33.024Z",
     "staged_file_blobs": [
-      "1a09d7412b5f308dc4079c0b17cb8ec024c341f8",
-      "78899decd22a7a1d6dcaaa2654ee367e9a9b70e6"
+      "ec0294a21aeadff7aa857d813caf8a457b6789b1",
+      "5a7ee3e388b184cd0cd5d8113ed0dcce2637a23c"
     ]
   },
   "run_authorization": {
