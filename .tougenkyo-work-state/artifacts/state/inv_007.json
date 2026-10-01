@@ -1,0 +1,24 @@
+{
+  "artifact_version": "2.4.0",
+  "task_id": "INV-007",
+  "name": "Railway service",
+  "observed_at": "2026-10-01T00:29:49.504Z",
+  "project": {
+    "id": "d32b5bdd-2287-4a30-9f9f-75ec7a529259",
+    "name": "adventurous-perfection"
+  },
+  "environments": [
+    {
+      "id": "6b63674e-0de8-4d36-ac9d-9e0ba9d65ab9",
+      "name": "production"
+    }
+  ],
+  "services": [
+    {
+      "id": "fa38abee-9815-4b0c-a351-253d1c7319d6",
+      "name": "tougenkyo-core"
+    }
+  ],
+  "status": "PASS",
+  "external_task_mutation": false
+}
