@@ -1,0 +1,12 @@
+{
+  "artifact_version": "2.4.0",
+  "task_id": "INV-003",
+  "name": "GitHub HEAD",
+  "action": "Read current main HEAD SHA only.",
+  "observed_at": "2026-10-01T00:20:36.834Z",
+  "repository": "juicejuiceakb48gtr34-gif/-tougenkyo-core",
+  "branch": "main",
+  "head_sha": "4dae04463fa3dbf8ae60a76e62ed5637db3620fe",
+  "status": "PASS",
+  "external_task_mutation": false
+}
